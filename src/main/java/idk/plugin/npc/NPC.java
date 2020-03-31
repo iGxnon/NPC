@@ -487,7 +487,7 @@ public class NPC extends PluginBase {
                     if(!(entity1 instanceof NPC_Human)) {
                         sender.sendMessage("这个NPC无法修改模型");
                     }else if(!ModelManage.getHuman_Model().containsKey(args[2])){
-                        sender.sendMessage("没有这个模型文件");
+                        sender.sendMessage("没有这个名字的玩家模型文件");
                     }else {
                         ModelManage.setSkin((EntityHuman) entity1, ModelManage.getHuman_Model().get(args[2]));
                     }
