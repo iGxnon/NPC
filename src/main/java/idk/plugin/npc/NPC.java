@@ -1,13 +1,17 @@
 package idk.plugin.npc;
 
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.command.Command;
 import cn.nukkit.command.CommandSender;
 import cn.nukkit.entity.Entity;
+import cn.nukkit.entity.EntityHuman;
 import cn.nukkit.inventory.PlayerInventory;
 import cn.nukkit.nbt.tag.*;
+import cn.nukkit.plugin.Plugin;
 import cn.nukkit.plugin.PluginBase;
 import idk.plugin.npc.entities.*;
+import xyz.lightsky.ModelManage.ModelManage;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -139,7 +143,7 @@ public class NPC extends PluginBase {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("§cThis command only works in game");
+            sender.sendMessage("§c只能在游戏里使用该命令");
             return true;
         }
 
@@ -153,12 +157,12 @@ public class NPC extends PluginBase {
             switch (args[0].toLowerCase()) {
                 case "spawn":
                     if (args.length < 2) {
-                        sender.sendMessage("§cUsage: /npc spawn <entity> [name]");
+                        sender.sendMessage("§c使用方法: /npc spawn <NPC种类> [名称]");
                         return true;
                     }
 
                     if (!entities.contains(args[1])) {
-                        sender.sendMessage("§cEntity §4" + args[1] + "§c is not supported. You can see all supported entities with §e/npc list§c command. Notice that the entity name is case sensitive.");
+                        sender.sendMessage("§c没要找到NPC §4" + args[1] + "§c . 你可以使用指令§e/npc list§c 查看所有的NPC种类. 注意大小写哦.");
                         return true;
                     }
                     String name;
@@ -180,20 +184,20 @@ public class NPC extends PluginBase {
                         ent.setNameTagAlwaysVisible(true);
                     }
                     ent.spawnToAll();
-                    sender.sendMessage("§aNPC spawned with ID §e" + ent.getId() + " §aand the name §e" + ent.getName());
+                    sender.sendMessage("§aNPC创建成功，它的id: §e" + ent.getId() + " §a,它的名字： §e" + ent.getName());
                     return true;
                 case "getid":
                 case "id":
                     id.add(player.getName());
-                    player.sendMessage("§aID MODE - click an entity to get the ID");
+                    player.sendMessage("§a请点击一个NPC来查看它的id");
                     return true;
                 case "addcmd":
                     if (args.length < 3) {
-                        sender.sendMessage("§cUsage: /npc addcmd <ID> <cmd>");
+                        sender.sendMessage("§c使用方法(添加控制台命令): /npc addcmd <NPC的id> <命令>");
                         return true;
                     }
                     if (!isInteger(args[1])) {
-                        player.sendMessage("§cUsage: /npc addcmd <ID> <cmd>");
+                        player.sendMessage("§c使用方法(添加控制台命令): /npc addcmd <NPC的id> <命令>");
                         return true;
                     }
                     Entity enti = player.getLevel().getEntity(Integer.parseInt(args[1]));
@@ -204,23 +208,23 @@ public class NPC extends PluginBase {
                         cmd = cmd.replaceFirst(args[1], "");
                         StringTag st = new StringTag(cmd, cmd);
                         if (enti.namedTag.getList("Commands", StringTag.class).getAll().contains(st)) {
-                            player.sendMessage("§aCommand already added");
+                            player.sendMessage("§c该命令已经添加过了");
                             return true;
                         }
                         enti.namedTag.getList("Commands", StringTag.class).add(st);
-                        player.sendMessage("§aCommand added");
+                        player.sendMessage("§a成功添加该命令");
                         return true;
                     } else {
-                        player.sendMessage("§cNo NPC found with that ID");
+                        player.sendMessage("§c没有发现该id的NPC");
                         return true;
                     }
                 case "addplayercmd":
                     if (args.length < 3) {
-                        sender.sendMessage("§cUsage: /npc addplayercmd <ID> <cmd>");
+                        sender.sendMessage("§c使用方法(添加玩家命令): /npc addplayercmd <NPC的id> <命令>");
                         return true;
                     }
                     if (!isInteger(args[1])) {
-                        player.sendMessage("§cUsage: /npc addplayercmd <ID> <cmd>");
+                        player.sendMessage("§c(添加玩家命令): /npc addplayercmd <NPC的id> <命令>");
                         return true;
                     }
                     Entity enti2 = player.getLevel().getEntity(Integer.parseInt(args[1]));
@@ -231,49 +235,49 @@ public class NPC extends PluginBase {
                         cmd = cmd.replaceFirst(args[1], "");
                         StringTag st = new StringTag(cmd, cmd);
                         if (enti2.namedTag.getList("PlayerCommands", StringTag.class).getAll().contains(st)) {
-                            player.sendMessage("§aCommand already added");
+                            player.sendMessage("§c该命令已经添加过了");
                             return true;
                         }
                         enti2.namedTag.getList("PlayerCommands", StringTag.class).add(st);
-                        player.sendMessage("§aCommand added");
+                        player.sendMessage("§a成功添加该命令");
                         return true;
                     } else {
-                        player.sendMessage("§cNo NPC found with that ID");
+                        player.sendMessage("§c没有发现该id的NPC");
                         return true;
                     }
                 case "listcmd":
                     if (args.length < 2) {
-                        sender.sendMessage("§cUsage: /npc listcmd <ID>");
+                        sender.sendMessage("§c使用方法: /npc listcmd <NPC的id>");
                         return true;
                     }
                     if (!isInteger(args[1])) {
-                        sender.sendMessage("§cUsage: /npc listcmdd <ID>");
+                        sender.sendMessage("§c使用方法: /npc listcmdd <NPC的id>");
                         return true;
                     }
                     Entity entity = player.getLevel().getEntity(Integer.parseInt(args[1]));
                     if (entity instanceof NPC_Entity || entity instanceof NPC_Human || entity.namedTag.getBoolean("npc")) {
                         List<StringTag> cmddd = entity.namedTag.getList("Commands", StringTag.class).getAll();
-                        player.sendMessage("§aCommands of §e" + entity.getName() + " (" + entity.getId() + ")§a:");
+                        player.sendMessage("§aNPC：" + entity.getName() + " ( id为：" + entity.getId() + ")§a的控制台命令有:");
                         for (StringTag cmdd : cmddd) {
                             player.sendMessage(cmdd.data);
                         }
                         List<StringTag> cmdddd = entity.namedTag.getList("PlayerCommands", StringTag.class).getAll();
-                        player.sendMessage("§aPlayer commands of §e" + entity.getName() + " (" + entity.getId() + ")§a:");
+                        player.sendMessage("§aNPC： " + entity.getName() + " ( id为：" + entity.getId() + ")§a的玩家命令有:");
                         for (StringTag cmdd : cmdddd) {
                             player.sendMessage(cmdd.data);
                         }
                         return true;
                     } else {
-                        player.sendMessage("§cNo NPC found with that ID");
+                        player.sendMessage("§c没有发现该id的NPC");
                         return true;
                     }
                 case "delcmd":
                     if (args.length < 3) {
-                        sender.sendMessage("§cUsage: /npc delcmd <ID> <cmd>");
+                        sender.sendMessage("§c使用方法: /npc delcmd <NPC的id> <指令>");
                         return true;
                     }
                     if (!isInteger(args[1])) {
-                        player.sendMessage("§cUsage: /npc delcmd <ID> <cmd>");
+                        player.sendMessage("§c使用方法: /npc delcmd <NPC的id> <指令>");
                         return true;
                     }
                     Entity en = player.getLevel().getEntity(Integer.parseInt(args[1]));
@@ -285,23 +289,23 @@ public class NPC extends PluginBase {
                         StringTag st = new StringTag(cmd, cmd);
                         if (en.namedTag.getList("Commands", StringTag.class).getAll().contains(st)) {
                             en.namedTag.getList("Commands", StringTag.class).remove(st);
-                            player.sendMessage("§aCommand §e" + cmd + "§a removed");
+                            player.sendMessage("§a控制台指令: §e" + cmd + "§a 成功被移除");
                             return true;
                         } else {
-                            player.sendMessage("§cCommand §e" + cmd + "§c not found");
+                            player.sendMessage("§c控制台指令: §e" + cmd + "§c 没有发现");
                             return true;
                         }
                     } else {
-                        player.sendMessage("§cNo NPC found with that ID");
+                        player.sendMessage("§c没有发现该id的NPC");
                         return true;
                     }
                 case "delplayercmd":
                     if (args.length < 3) {
-                        sender.sendMessage("§cUsage: /npc delplayercmd <ID> <cmd>");
+                        sender.sendMessage("§c使用方法: /npc delplayercmd <NPC的id> <命令>");
                         return true;
                     }
                     if (!isInteger(args[1])) {
-                        player.sendMessage("§cUsage: /npc delplayercmd <ID> <cmd>");
+                        player.sendMessage("§c使用方法: /npc delplayercmd <NPC的id> <命令>");
                         return true;
                     }
                     Entity en2 = player.getLevel().getEntity(Integer.parseInt(args[1]));
@@ -313,45 +317,45 @@ public class NPC extends PluginBase {
                         StringTag st = new StringTag(cmd, cmd);
                         if (en2.namedTag.getList("PlayerCommands", StringTag.class).getAll().contains(st)) {
                             en2.namedTag.getList("PlayerCommands", StringTag.class).remove(st);
-                            player.sendMessage("§aCommand §e" + cmd + "§a removed");
+                            player.sendMessage("§a玩家命令: " + cmd + "§a 成功被移除");
                             return true;
                         } else {
-                            player.sendMessage("§cCommand §e" + cmd + "§c not found");
+                            player.sendMessage("§c玩家命令: " + cmd + "§c 没有发现");
                             return true;
                         }
                     } else {
-                        player.sendMessage("§cNo NPC found with that ID");
+                        player.sendMessage("§c没有发现该id的NPC");
                         return true;
                     }
                 case "delallcmd":
                     if (args.length < 2) {
-                        sender.sendMessage("§cUsage: /npc delallcmd <ID>");
+                        sender.sendMessage("§c使用方法: /npc delallcmd <NPC的id>");
                         return true;
                     }
                     if (!isInteger(args[1])) {
-                        player.sendMessage("§cUsage: /npc delallcmd <ID>");
+                        player.sendMessage("§c使用方法: /npc delallcmd <NPC的id>");
                         return true;
                     }
                     Entity en3 = player.getLevel().getEntity(Integer.parseInt(args[1]));
                     if (en3 instanceof NPC_Human || en3 instanceof NPC_Entity || en3.namedTag.getBoolean("npc")) {
                         en3.namedTag.putList(new ListTag<StringTag>("Commands")).putList(new ListTag<StringTag>("PlayerCommands"));
-                        sender.sendMessage("§aCommands removed");
+                        sender.sendMessage("§a指令已经全部移除");
                     } else {
-                        player.sendMessage("§cNo NPC found with that ID");
+                        player.sendMessage("§c没有发现该id的NPC");
                         return true;
                     }
                 case "edit":
                     if (args.length < 3) {
-                        player.sendMessage("§cUsage: /npc edit <ID> <item|armor|scale|name|tphere>");
+                        player.sendMessage("§c使用方法: /npc edit <ID> <item|armor|scale|name|tphere>");
                         return true;
                     }
                     if (!isInteger(args[1])) {
-                        sender.sendMessage("§cUsage: /npc edit <ID> <item|armor|scale|name|tphere>");
+                        sender.sendMessage("§c使用方法: /npc edit <ID> <item|armor|scale|name|tphere>");
                         return true;
                     }
                     Entity e = player.getLevel().getEntity(Integer.parseInt(args[1]));
                     if (e == null) {
-                        player.sendMessage("§cno entity found with that ID");
+                        player.sendMessage("§c没有发现该id的NPC");
                         return true;
                     }
                     PlayerInventory pl = player.getInventory();
@@ -362,59 +366,59 @@ public class NPC extends PluginBase {
                             if (e instanceof NPC_Human || e.namedTag.getBoolean("ishuman")) {
                                 NPC_Human nh = (NPC_Human) e;
                                 nh.getInventory().setItemInHand(pl.getItemInHand());
-                                player.sendMessage("§aItem changed to §e" + pl.getItemInHand().getName());
+                                player.sendMessage("§aNPC的手持物改变为： §e" + pl.getItemInHand().getName());
                                 nh.namedTag.putString("Item", pl.getItemInHand().getName());
                                 return true;
                             } else {
-                                player.sendMessage("§cThat entity can't have item");
+                                player.sendMessage("§c那个实体无法手持物品哦");
                                 return true;
                             }
                         case "armor":
                             if (e instanceof NPC_Human || e.namedTag.getBoolean("ishuman")) {
                                 NPC_Human nh = (NPC_Human) e;
                                 nh.getInventory().setHelmet(pl.getHelmet());
-                                player.sendMessage("§aHelmet changed to §e" + pl.getHelmet().getName());
+                                player.sendMessage("§aNPC的头盔改变为 §e" + pl.getHelmet().getName());
                                 nh.namedTag.putString("Helmet", pl.getHelmet().getName());
                                 nh.getInventory().setChestplate(pl.getChestplate());
-                                player.sendMessage("§aChestplate changed to §e" + pl.getChestplate().getName());
+                                player.sendMessage("§aNPC的胸甲改变为 §e" + pl.getChestplate().getName());
                                 nh.namedTag.putString("Chestplate", pl.getChestplate().getName());
                                 nh.getInventory().setLeggings(pl.getLeggings());
-                                player.sendMessage("§aLeggings changed to §e" + pl.getLeggings().getName());
+                                player.sendMessage("§aNPC的护腿改变为 §e" + pl.getLeggings().getName());
                                 nh.namedTag.putString("Leggings", pl.getLeggings().getName());
                                 nh.getInventory().setBoots(pl.getBoots());
-                                player.sendMessage("§aBoots changed to §e" + pl.getBoots().getName());
+                                player.sendMessage("§aNPC的靴子改变为 §e" + pl.getBoots().getName());
                                 nh.namedTag.putString("Boots", pl.getBoots().getName());
                                 return true;
                             } else {
-                                player.sendMessage("§cNo Human NPC found with that ID");
+                                player.sendMessage("§c那个实体无法手持物品哦");
                                 return true;
                             }
                         case "scale":
                         case "size":
                             if (args.length < 4) {
-                                player.sendMessage("§cUsage: /npc edit <ID> scale <int> §eDefault is 1.");
+                                player.sendMessage("§c使用方法: /npc edit <NPC的id> scale <int> §e默认是 1.");
                                 return true;
                             }
                             if (!isFloat(args[3])) {
-                                player.sendMessage("§cUsage: /npc edit <ID> scale <int> §eDefault is 1.");
+                                player.sendMessage("§c使用方法: /npc edit <NPC的id> scale <int> §e默认是 1.");
                                 return true;
                             }
                             if (Float.parseFloat(args[3]) > 25) {
-                                player.sendMessage("§cMax scale is 25");
+                                player.sendMessage("§c最大尺寸是 25");
                                 return true;
                             }
                             if (e instanceof NPC_Human || e instanceof NPC_Entity || e.namedTag.getBoolean("npc")) {
                                 e.setScale(Float.parseFloat(args[3]));
                                 e.namedTag.putFloat("scale", Float.parseFloat(args[3]));
-                                player.sendMessage("§aScale changed to §e" + args[3]);
+                                player.sendMessage("§a成功吧大小改成 §e" + args[3]);
                                 return true;
                             } else {
-                                player.sendMessage("§cNo NPC found with that ID");
+                                player.sendMessage("§c没有发现该id的NPC");
                                 return true;
                             }
                         case "name":
                             if (args.length < 3) {
-                                player.sendMessage("§cUsage: /npc edit <ID> name <name>");
+                                player.sendMessage("§c使用方法: /npc edit <NPC的id> 名字 <原来的名字>");
                                 return true;
                             }
                             if (e instanceof NPC_Human || e instanceof NPC_Entity || e.namedTag.getBoolean("npc")) {
@@ -436,12 +440,12 @@ public class NPC extends PluginBase {
                                 if (!name.equals("%k")) {
                                     e.setNameTag(name);
                                     e.setNameTagVisible();
-                                    player.sendMessage("§aName changed to §e" + name);
+                                    player.sendMessage("§a名字改变为 §e" + name);
                                 }
                                 e.namedTag.putString("NameTag", name);
                                 return true;
                             } else {
-                                player.sendMessage("§cNo NPC found with that ID");
+                                player.sendMessage("§c没有发现该id的NPC");
                                 return true;
                             }
                         case "gohere":
@@ -449,13 +453,13 @@ public class NPC extends PluginBase {
                         case "tp":
                         case "teleport":
                             if (args.length < 2) {
-                                player.sendMessage("§cUsage: /npc edit <ID> tphere");
+                                player.sendMessage("§cUsage: /npc edit <NPC的id> tphere");
                                 return true;
                             }
                             if (e instanceof NPC_Human || e instanceof NPC_Entity || e.namedTag.getBoolean("npc")) {
                                 e.teleport(player);
                                 e.respawnToAll();
-                                player.sendMessage("§aEntity teleported");
+                                player.sendMessage("§aNPC已经传送到你那了");
                                 return true;
                             }
                     }
@@ -463,15 +467,30 @@ public class NPC extends PluginBase {
                 case "kill":
                     if (kill.contains(player.getName())) {
                         kill.remove(player.getName());
-                        player.sendMessage("§cKill mode deactivated");
+                        player.sendMessage("§c你已经输入过了该命令");
                     } else {
                         kill.add(player.getName());
-                        player.sendMessage("§aKILL MODE - click an entity to remove it");
+                        player.sendMessage("§a请点击一个NPC来移除它");
                     }
                     return true;
                 case "entities":
                 case "list":
-                    sender.sendMessage("§aAvailable entities: §3" + entities.toString());
+                    sender.sendMessage("§aNPC种类列表: §3" + entities.toString());
+                    return true;
+                case "model":
+                    Plugin model = null;
+                    if((model = Server.getInstance().getPluginManager().getPlugin("ModelManage")) == null) return false;
+                    if(args.length != 3){
+                        sender.sendMessage("§3设置NPC皮肤模型: §e/npc model <ID> <模型名称>");
+                    }
+                    Entity entity1 = player.getLevel().getEntity(Integer.parseInt(args[1]));
+                    if(!(entity1 instanceof NPC_Human)) {
+                        sender.sendMessage("这个NPC无法修改模型");
+                    }else if(!ModelManage.getHuman_Model().containsKey(args[2])){
+                        sender.sendMessage("没有这个模型文件");
+                    }else {
+                        ModelManage.setSkin((EntityHuman) entity1, ModelManage.getHuman_Model().get(args[2]));
+                    }
                     return true;
                 default:
                     sendHelp(sender);
@@ -501,17 +520,24 @@ public class NPC extends PluginBase {
     }
 
     private static void sendHelp(CommandSender sender) {
-        sender.sendMessage("§l§a--- NPC HELP ---");
-        sender.sendMessage("§3Spawn NPC: §e/npc spawn <entity> <name>");
-        sender.sendMessage("§3Add console command: §e/npc addcmd <ID> <cmd>");
-        sender.sendMessage("§3Add player command: §e/npc addplayercmd <ID> <cmd>");
-        sender.sendMessage("§3Delete console command: §e/npc delcmd <ID> <cmd>");
-        sender.sendMessage("§3Delete player command: §e/npc delplayercmd <ID> <cmd>");
-        sender.sendMessage("§3Delete all commands: §e/npc delallcmd <ID>");
-        sender.sendMessage("§3See all commands: §e/npc listcmd <ID>");
-        sender.sendMessage("§3Edit NPC: §e/npc edit <ID> <item|armor|scale|name|tphere>");
-        sender.sendMessage("§3Get NPCs id: §e/npc getid");
-        sender.sendMessage("§3Get list of all available entities: §e/npc entities");
-        sender.sendMessage("§3Remove NPC: §e/npc remove");
+        sender.sendMessage("§l§a--- 帮助 注：\"()\"里表示注解不是指令 ---");
+        sender.sendMessage("§3创建 NPC: §e/npc spawn <entity> <name>");
+        sender.sendMessage("§3添加控制台命令: §e/npc addcmd <ID> <cmd>");
+        sender.sendMessage("§3添加玩家命令: §e/npc addplayercmd <ID> <cmd>");
+        sender.sendMessage("§3删除控制台命令: §e/npc delcmd <ID> <cmd>");
+        sender.sendMessage("§3删除玩家命令: §e/npc delplayercmd <ID> <cmd>");
+        sender.sendMessage("§3删除npc所有命令: §e/npc delallcmd <ID>");
+        sender.sendMessage("§3查看npc所有命令: §e/npc listcmd <ID>");
+        sender.sendMessage("§3编辑 NPC: §e/npc edit <ID> <item(手持)|armor(装备)|scale(大小)|name(名称)|tphere(传送到这)>");
+        sender.sendMessage("§3获得NPC的 id: §e/npc getid");
+        sender.sendMessage("§3NPC的种类列表: §e/npc entities");
+        sender.sendMessage("§3移除NPC: §e/npc remove");
+        sender.sendMessage("§3查看所有NPC种类: §e/npc list");
+
+        Plugin model = null;
+        if((model = Server.getInstance().getPluginManager().getPlugin("ModelManage")) != null){
+            sender.sendMessage("§3设置NPC皮肤模型: §e/npc model <ID> <模型名称>");
+        }
+
     }
 }

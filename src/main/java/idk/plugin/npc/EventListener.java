@@ -30,12 +30,12 @@ public class EventListener implements Listener {
                     String name = player.getName();
 
                     if (NPC.id.contains(name)) {
-                        player.sendMessage("§aThe ID from that entity is " + entity.getId());
+                        player.sendMessage("§a这个NPC的id是： " + entity.getId());
                         NPC.id.remove(name);
 
                     } else if (NPC.kill.contains(name)) {
                         entity.close();
-                        player.sendMessage("§aEntity removed");
+                        player.sendMessage("§a成功移除该NPC");
                         NPC.kill.remove(name);
 
                     } else {
